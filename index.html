@@ -7,42 +7,124 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="Description" content="Demonstration for hax-search">
 
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --global-hex-color: #fd0606;
-    } 
+      --accent-color: #007BFF; 
+      --background-color: #f5f5f5;
+      --text-color: #333;
+      --link-color: #1a73e8;
+      --hover-link-color: #0056b3; 
+      --spacing: 16px;
+      --border-radius: 8px;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
     }
+
     #demo {
-      margin: var(--ddd-spacing-2);
+      padding: var(--spacing);
+      max-width: 1000px;
+      margin: 0 auto;
     }
+
+    h1, h2 {
+      margin-bottom: var(--spacing);
+      font-weight: 500;
+      color: var(--accent-color); 
+    }
+
     hax-search {
-      margin: var(--ddd-spacing-2);
-      border: var(--ddd-border-md);
-      border-radius: var(--ddd-radius-lg);
+      margin: var(--spacing) 0;
+      padding: var(--spacing);
+      border: 2px solid var(--accent-color);
+      border-radius: var(--border-radius);
+      transition: box-shadow 0.3s ease;
     }
+
     hax-search:hover {
-      box-shadow: var(--ddd-boxShadow-sm);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-    #example {
-      --hax-search-font-size: var(--ddd-font-size-l);
-      background-color: var(--ddd-accent-2);
-      color: var(--ddd-primary-17);
+
+    a {
+      color: var(--link-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--hover-link-color);
+      text-decoration: underline;
+    }
+
+    details {
+      background-color: #fff;
+      padding: var(--spacing);
+      border-radius: var(--border-radius);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    details summary {
+      font-weight: 600;
+      background-color: var(--accent-color);
+      color: white;
+      padding: var(--spacing);
+      border-radius: var(--border-radius);
+      cursor: pointer;
+    }
+
+    details[open] summary {
+      background-color: #333;
+    }
+
+    @media (max-width: 768px) {
+      #demo {
+        padding: var(--spacing) 8px;
+      }
+      h1, h2 {
+        font-size: 1.5rem;
+      }
     }
   </style>
+
   <title>hax-search</title>
 </head>
 
 <body>
+
   <div id="demo">
     <h1>hax-search</h1>
-    <!-- this is going to do whatever the tag's defaults are -->
-    <h2>Type Your JSON Below!</h2>
-    <json-analyzer></json-analyzer>
-
+    
+    <hax-search></hax-search>
   </div>
+
+  <!-- Link to JavaScript Modules -->
   <script type="module" src="./json-analyzer.js"></script>
+  <script type="module" src="./hax-search.js"></script>
+
+  <!-- Development Guide (Details section) -->
+  <details open>
+    <summary>How to Develop</summary>
+    <div>
+      <p>
+        <strong>GitHub Repository:</strong> <a href="https://github.com/JMaldo10/hax-search" target="_blank" rel="nofollow">JMaldo10/hax-search</a>
+      </p>
+      <p>Modify <code>index.html</code> to change this page content.</p>
+      <p>To update the <strong>hax-search</strong> component, edit <code>src/hax-search.js</code>.</p>
+      <ul>
+        <li><a href="https://haxtheweb.org/documentation/ddd" target="_blank">Learn DDD HAX Design System</a></li>
+        <li><a href="https://lit.dev/playground/" target="_blank" rel="nofollow">Learn Lit</a></li>
+        <li><a href="https://hax.psu.edu" target="_blank">HAX The Web @ Penn State</a></li>
+      </ul>
+    </div>
+  </details>
+
 </body>
+
 </html>

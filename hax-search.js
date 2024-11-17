@@ -1,14 +1,17 @@
 import { LitElement, html, css } from "lit";
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
+import { ifDefined } from 'lit/directives/if-defined.js';
+import "./site-details.js";
+import "./site-card.js";
+import '@haxtheweb/hax-iconset/hax-iconset.js';
+import '@haxtheweb/simple-icon/simple-icon.js';
 
 /**
  * `hax-search`
- * 
- * @demo index.html
  * @element hax-search
  */
-export class HaxSearch extends DDDSuper(I18NMixin(LitElement)) {
+export class haxsearch extends DDDSuper(I18NMixin(LitElement)) {
 
   static get tag() {
     return "hax-search";
@@ -16,145 +19,230 @@ export class HaxSearch extends DDDSuper(I18NMixin(LitElement)) {
 
   constructor() {
     super();
-    this.title = "";
-    this.searchTerm = "";
-    this.jsonData = []; // Initialize jsonData as an empty array
-    this.t = this.t || {};
-    this.t = {
-      ...this.t,
-      title: "Title",
-      searchLabel: "Search",
-    };
+    this.title = "hax-search";
+    this.loading = false;
+    this.searchResults = [];
+    this.searchQuery = '';
+    this.data = null;
+    this.url = '';
+
     this.registerLocalization({
       context: this,
-      localesPath:
-        new URL("./locales/hax-search.ar.json", import.meta.url).href +
-        "/../",
+      localesPath: new URL("./locales/project-1.ar.json", import.meta.url).href + "/../",
       locales: ["ar", "es", "hi", "zh"],
     });
   }
 
-  // Lit reactive properties
   static get properties() {
     return {
       ...super.properties,
       title: { type: String },
-      searchTerm: { type: String },
-      jsonData: { type: Array }, // Added to handle incoming JSON data
+      loading: { type: Boolean, reflect: true },
+      searchResults: { type: Array, attribute: "search-results", reflect: true },
+      searchQuery: { type: String, attribute: "search-query" },
+      data: { type: Object, reflect: true },
+      url: { type: String },
     };
   }
 
-  // Lit scoped styles
+  firstUpdated() {
+    this.updateResults(this.searchQuery);
+
+    document.addEventListener("keyup", e => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey) return;
+      if (/^(?:input|textarea|select|button)$/i.test(e.target.tagName)) return;
+      e.preventDefault();
+      this.shadowRoot.querySelector('.search-input').focus();
+    });
+  }
+
   static get styles() {
-    return [super.styles, css`
+    return [super.styles,
+    css`
       :host {
-        display: block;
         color: var(--ddd-theme-primary);
         background-color: var(--ddd-theme-accent);
-        font-family: var(--ddd-font-navigation);
-      }
-      .wrapper {
-        margin: var(--ddd-spacing-2);
-        padding: var(--ddd-spacing-4);
-      }
-      .search-bar {
-        margin-top: var(--ddd-spacing-2);
-      }
-      .search-bar input {
-        width: 100%;
-        padding: var(--ddd-spacing-1);
-        font-size: var(--ddd-font-size-m);
-        border: 1px solid var(--ddd-theme-border);
-        border-radius: var(--ddd-border-radius);
-      }
-      h3 span {
-        font-size: var(--hax-search-label-font-size, var(--ddd-font-size-s));
-      }
-      .card {
-        background-color: var(--ddd-theme-primary);
-        padding: var(--ddd-spacing-2);
-        margin-top: var(--ddd-spacing-2);
-        border-radius: var(--ddd-border-radius);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s;
-      }
-      .card:hover {
-        transform: scale(1.05);
-      }
-      .card h4 {
+        font-family: var(--ddd-font-primary);
+        font-size: 16px;
+        padding: 0;
         margin: 0;
-        font-size: var(--ddd-font-size-l);
       }
-      .card p {
-        font-size: var(--ddd-font-size-m);
+      * {
+          margin: 0;          
+          padding: 0;      
+      }
+      div {
+        font: inherit;
+      }
+      :host([loading]) .content {
+        opacity: 0.1;
+        visibility: hidden;
+        height: 1px;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ddd-spacing-5, 20px);
+        max-width: 1500px;
+        align-items: center;
+        margin: auto;
+      }
+      .search {
+        font: inherit;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--ddd-spacing-1, 4px);
+        width: 500px;
+        max-width: 90vw;
+        justify-content: center;
+      }
+      .search-button {
+        height: 50px;
+        box-sizing: content-box;
+        padding: 0 var(--ddd-spacing-5, 20px);
+        text-align: center;
+        margin: auto;
+        font-size: inherit;
+      }
+      .search-input {
+        height: 50px;
+        flex: 1 1 0;
+        padding: 0 var(--ddd-spacing-2, 8px);
+        font-size: inherit;
+      }
+      .results {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--ddd-spacing-4, 16px);
+        justify-content: space-evenly;
+      }
+      site-card {
+        flex: 1 1 300px;
+      }
+      site-details {
+        flex: 1 1 0;
       }
     `];
   }
 
-  // Render the HTML content
   render() {
-    // Filter the JSON data based on the searchTerm
-    const filteredData = this._filterData();
-
     return html`
-      <div class="wrapper">
-        <h3><span>${this.t.title}:</span> ${this.title}</h3>
+<div class="container">
 
-        <!-- Search Bar -->
-        <div class="search-bar">
-          <label for="search-input">${this.t.searchLabel}</label>
-          <input 
-            type="text" 
-            id="search-input" 
-            .value="${this.searchTerm}" 
-            @input="${this._onSearchInput}" 
-            placeholder="${this.t.searchLabel}" 
-          />
-        </div>
+  <h2>${this.title}</h2>
 
-        <!-- Display filtered JSON Data -->
-        ${filteredData.length > 0 
-          ? html`
-              <div>
-                ${filteredData.map(item => html`
-                  <div class="card">
-                    <h4>${item.title || 'No Title'}</h4>
-                    <p>${item.description || 'No Description'}</p>
-                  </div>
-                `)}
-              </div>
-            `
-          : html`<p>No results found.</p>`
-        }
+  <div class="search">
+    <input class="search-input" placeholder="Enter 'haxtheweb.org'"
+    @keydown="${(e) => { if (e.key === 'Enter') { this.updateSearchQuery(); } }}"/>
+    <button class="search-button" @click="${this.updateSearchQuery}">Analyze</button>
+  </div>
 
-        <!-- Slot for additional content -->
-        <slot></slot>
+  ${(this.loading) ? html`Loading results for '${this.url}'` : html`
+    ${(this.data === null) ? html`<div>The site '${this.url}' is not compatible</div>` :
+    html`
+      <div class="content">
+        <site-details 
+          title=${this.data.title}
+          description=${this.data.description}
+          logo='${this.url}${this.data.metadata.site.logo}' 
+          dateCreated=${this.dateToString(this.data.metadata.site.created)}
+          dateUpdated=${this.dateToString(this.data.metadata.site.updated)}
+          hexCode=${this.data.metadata.theme.variables.hexCode}
+          theme=${this.data.metadata.theme.name}
+          icon=${this.data.metadata.theme.variables.icon}  
+          url=${this.url}
+        ></site-details>
       </div>
-    `;
+
+        <div class="results content">
+          ${this.searchResults.length === 0 ? html`<p>No results found.</p>` :
+          this.searchResults.map((item) =>
+            html`
+              <site-card
+                title=${item.title}
+                description=${item.description}
+                imageSrc='${ifDefined(this.getImgSrc(item))}'
+                dateUpdated=${this.dateToString(item.metadata.updated)}
+                pageLink='${this.url}${item.slug}'
+                pageHtml='${this.url}${item.location}'
+                readTime=${(item.metadata.readtime)}
+              ></site-card>
+            `  
+          )}
+        </div>
+      `  
+    }
+  `}
+</div>
+`;}
+
+
+updateSearchQuery() {
+  this.searchQuery = this.shadowRoot.querySelector('.search-input').value;
+  this.updateResults();
+}
+
+updateResults() {
+  this.loading = true;
+
+  let formattedSearchQuery = this.searchQuery.replace(/^(?!https?:\/\/)(.+?)(\/?)$/, "https://$1");
+  this.url = '';
+  let jsonUrl = '';
+
+  if (formattedSearchQuery.endsWith("site.json")) {
+    this.url = formattedSearchQuery.replace(/site\.json\/?$/, "");
+    jsonUrl = formattedSearchQuery;
+  } else {
+    if (formattedSearchQuery.endsWith("/")) {
+      this.url = formattedSearchQuery;
+    } else {
+      this.url = formattedSearchQuery + '/';
+    }
+    jsonUrl = `${this.url}site.json`;
   }
 
-  // Event handler for search input
-  _onSearchInput(event) {
-    this.searchTerm = event.target.value;
-    this.title = this.searchTerm ? `Search results for: ${this.searchTerm}` : '';
-  }
+  fetch(jsonUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to load JSON: ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.items) {
+        this.searchResults = data.items;
+        this.data = data;
+        this.loading = false;
+        this.requestUpdate();
+      }
+    })
+    .catch(error => {
+      this.loading = false;
+      this.searchResults = [];
+      this.data = null;
+      console.error('Error fetching JSON:', error);
+      alert('An error occurred while fetching data. Please try again later.');
+    });
+}
 
-  // Function to filter the jsonData based on searchTerm
-  _filterData() {
-    if (!this.searchTerm) return this.jsonData; // If no search term, return all data
-    const lowerSearchTerm = this.searchTerm.toLowerCase();
-    return this.jsonData.filter(item => 
-      (item.title && item.title.toLowerCase().includes(lowerSearchTerm)) ||
-      (item.description && item.description.toLowerCase().includes(lowerSearchTerm))
-    );
-  }
-
-  /**
-   * haxProperties integration via file reference
-   */
-  static get haxProperties() {
-    return new URL(`./lib/${this.tag}.haxProperties.json`, import.meta.url).href;
+getImgSrc(item) {
+  let images = item.metadata.images;
+  if (images && images.length > 0) {
+    return this.url + images[0];
+  } else {
+    return '';
   }
 }
 
-globalThis.customElements.define(HaxSearch.tag, HaxSearch);
+dateToString(timestamp) {
+  const date = new Date(timestamp * 1000); // Convert timestamp to milliseconds
+  return date.toUTCString();
+}
+
+static get haxProperties() {
+  return new URL(`./lib/${this.tag}.haxProperties.json`, import.meta.url).href;
+}
+
+}
+
+globalThis.customElements.define(haxsearch.tag, haxsearch);
