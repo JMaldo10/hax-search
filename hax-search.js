@@ -26,11 +26,6 @@ export class haxsearch extends DDDSuper(I18NMixin(LitElement)) {
     this.data = null;
     this.url = '';
 
-    this.registerLocalization({
-      context: this,
-      localesPath: new URL("./locales/project-1.ar.json", import.meta.url).href + "/../",
-      locales: ["ar", "es", "hi", "zh"],
-    });
   }
 
   static get properties() {
@@ -235,7 +230,7 @@ getImgSrc(item) {
 }
 
 dateToString(timestamp) {
-  const date = new Date(timestamp * 1000); // Convert timestamp to milliseconds
+  const date = new Date(timestamp * 1000); 
   return date.toUTCString();
 }
 

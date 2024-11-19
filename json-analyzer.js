@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { DDDSuper } from "@haxtheweb/d-d-d/d-d-d.js";
 import { I18NMixin } from "@haxtheweb/i18n-manager/lib/I18NMixin.js";
-import "./hax-search.js";  // Ensure hax-search component is available
+import "./hax-search.js";  
 
 class JsonAnalyzer extends LitElement {
   static get styles() {
@@ -82,7 +82,7 @@ class JsonAnalyzer extends LitElement {
 
   constructor() {
     super();
-    this.url = 'https://haxtheweb.org/site.json';  // Default URL for fetching JSON
+    this.url = 'https://haxtheweb.org/site.json';  
     this.jsonData = [];
     this.error = null;
   }
@@ -119,8 +119,8 @@ class JsonAnalyzer extends LitElement {
   }
 
   async _analyze() {
-    this.jsonData = [];  // Reset previous data
-    this.error = null;  // Clear error message
+    this.jsonData = [];  
+    this.error = null;  
 
     try {
       const response = await fetch(this.url);
@@ -129,12 +129,12 @@ class JsonAnalyzer extends LitElement {
       }
       const data = await response.json();
 
-      // Validate data structure
+      
       if (!data || !data.siteName || !data.items) {
         throw new Error('Invalid site.json structure');
       }
 
-      this.jsonData = data.items;  // Assuming items is the array of data
+      this.jsonData = data.items;  
 
     } catch (err) {
       this.error = err.message;
