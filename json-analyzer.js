@@ -98,7 +98,7 @@ class JsonAnalyzer extends LitElement {
           type="text"
           placeholder="https://haxtheweb.org/site.json (Override URL)"
           @input="${this._updateURL}"
-          .value="${this.url}"
+          value="${this.url}"
           aria-label="Enter URL of the site to analyze"
         />
       </div>

@@ -22,7 +22,7 @@ export class haxsearch extends DDDSuper(I18NMixin(LitElement)) {
     this.title = "hax-search";
     this.loading = false;
     this.searchResults = [];
-    this.searchQuery = '';
+    this.searchQuery = 'https://haxtheweb.org';
     this.data = null;
     this.url = '';
 
